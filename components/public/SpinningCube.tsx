@@ -11,7 +11,7 @@ const Scene = dynamic(
 
 export default function SpinningCube() {
   return (
-    <div style={{ width: 96, height: 96 }} aria-hidden="true">
+    <div style={{ width: 300, height: 300 }} aria-hidden="true">
       <Scene />
     </div>
   )

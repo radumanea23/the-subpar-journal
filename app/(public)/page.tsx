@@ -44,7 +44,7 @@ export default async function HomePage() {
 
   return (
     <main className="max-w-site mx-auto px-4 sm:px-6 lg:px-8">
-      <section className="flex flex-col items-center py-24">
+      <section className="flex flex-col items-center py-10">
         <SpinningCube />
       </section>
 
