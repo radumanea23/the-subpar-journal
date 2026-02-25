@@ -140,21 +140,21 @@ interface Particle {
 
 // Fragment shader renders every gl.POINT as a solid square (no circle discard),
 // with per-particle alpha fed through a custom attribute.
+// INK #0F0F0F → vec3(0.059, 0.059, 0.059) — dark on parchment background = visible
 const VERT = `
   attribute float alpha;
   varying float vAlpha;
   void main() {
     vAlpha = alpha;
     gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0);
-    gl_PointSize = 5.0;
+    gl_PointSize = 6.0;
   }
 `
-// PARCHMENT #F0E6CE → vec3(0.941, 0.902, 0.808)
 const FRAG = `
   varying float vAlpha;
   void main() {
     if (vAlpha < 0.02) discard;
-    gl_FragColor = vec4(0.941, 0.902, 0.808, vAlpha);
+    gl_FragColor = vec4(0.059, 0.059, 0.059, vAlpha);
   }
 `
 
@@ -170,29 +170,26 @@ function Fragments({ hover }: { hover: React.MutableRefObject<HoverState> }) {
     })),
   )
 
-  // Geometry and attribute arrays live outside React state for direct mutation
-  const { geo, positions, alphas } = useMemo(() => {
+  // Build the Points object imperatively so <primitive> can own it cleanly.
+  const { points, positions, alphas } = useMemo(() => {
     const positions = new Float32Array(MAX_PARTICLES * 3)
     const alphas = new Float32Array(MAX_PARTICLES)
-    // Park inactive particles far off-screen
+    // Park inactive particles off-screen so they never flash on first frame
     for (let i = 0; i < MAX_PARTICLES; i++) positions[i * 3 + 2] = -1000
 
     const geo = new THREE.BufferGeometry()
     geo.setAttribute("position", new THREE.BufferAttribute(positions, 3))
     geo.setAttribute("alpha", new THREE.BufferAttribute(alphas, 1))
-    return { geo, positions, alphas }
-  }, [])
 
-  const mat = useMemo(
-    () =>
-      new THREE.ShaderMaterial({
-        vertexShader: VERT,
-        fragmentShader: FRAG,
-        transparent: true,
-        depthWrite: false,
-      }),
-    [],
-  )
+    const mat = new THREE.ShaderMaterial({
+      vertexShader: VERT,
+      fragmentShader: FRAG,
+      transparent: true,
+      depthWrite: false,
+    })
+
+    return { points: new THREE.Points(geo, mat), positions, alphas }
+  }, [])
 
   useFrame(() => {
     const h = hover.current
@@ -257,11 +254,12 @@ function Fragments({ hover }: { hover: React.MutableRefObject<HoverState> }) {
       if (p.life >= p.maxLife) p.active = false
     }
 
+    const geo = points.geometry as THREE.BufferGeometry
     ;(geo.getAttribute("position") as THREE.BufferAttribute).needsUpdate = true
     ;(geo.getAttribute("alpha") as THREE.BufferAttribute).needsUpdate = true
   })
 
-  return <points geometry={geo} material={mat} />
+  return <primitive object={points} />
 }
 
 // ── Scene root ─────────────────────────────────────────────────────────────────
