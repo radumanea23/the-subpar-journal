@@ -10,12 +10,12 @@ const INK = "#0F0F0F"
 const PARCHMENT = "#F0E6CE"
 
 // BoxGeometry face order: +X, -X, +Y, -Y, +Z, -Z
-const FACES = ["AI", "MUSIC", "SPORTS", "CODING", "LIFE", "TSJ"]
+const FACES = ["AI", "MUSIC", "SPORTS", "DATA", "LIFE", "TSJ"]
 
 const IDLE_VX = 0.002
 const IDLE_VY = 0.004
 const CUBE_HALF = 0.8 // half-edge of the 1.6-unit box
-const MAX_PARTICLES = 300
+const MAX_PARTICLES = 120
 
 // ── Shared hover state (plain ref — avoids React re-renders per frame) ─────────
 interface HoverState {
@@ -156,7 +156,7 @@ const VERT = `
   void main() {
     vAlpha = alpha;
     gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0);
-    gl_PointSize = 6.0;
+    gl_PointSize = 4.0;
   }
 `
 const FRAG = `
@@ -197,7 +197,12 @@ function Fragments({ hover }: { hover: React.MutableRefObject<HoverState> }) {
       depthWrite: false,
     })
 
-    return { points: new THREE.Points(geo, mat), positions, alphas }
+    const pts = new THREE.Points(geo, mat)
+    // Without a computed bounding sphere Three.js may frustum-cull the entire
+    // Points object before any particles are visible. Disable culling so the
+    // particle cloud always renders regardless of its bounding state.
+    pts.frustumCulled = false
+    return { points: pts, positions, alphas }
   }, [])
 
   useFrame(() => {
@@ -206,7 +211,7 @@ function Fragments({ hover }: { hover: React.MutableRefObject<HoverState> }) {
 
     // Spawn new fragments at the cursor's hit point on the cube surface
     if (h.active && h.hasHit) {
-      spawnAccum.current += 5
+      spawnAccum.current += 3
       while (spawnAccum.current >= 1) {
         spawnAccum.current -= 1
         const p = ps.find((p) => !p.active)

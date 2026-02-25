@@ -44,8 +44,54 @@ export default async function HomePage() {
 
   return (
     <main className="max-w-site mx-auto px-4 sm:px-6 lg:px-8">
-      <section className="flex flex-col items-center py-10">
-        <SpinningCube />
+      {/* Hero: newspaper-style three-column layout */}
+      <section className="py-10">
+        <div className="grid grid-cols-1 lg:grid-cols-[1fr_300px_1fr] gap-y-10 lg:gap-x-10 items-center">
+
+          {/* Left column — Welcome */}
+          <div className="space-y-4 lg:border-r lg:border-rule-light lg:pr-10">
+            <p className="font-mono text-xs tracking-widest uppercase text-ink-faint">
+              Est. 2026 · San Francisco
+            </p>
+            <h2
+              className="font-display font-black text-ink leading-tight"
+              style={{ fontSize: "clamp(1.4rem, 2vw, 1.875rem)" }}
+            >
+              A Notebook From the Intersection
+            </h2>
+            <div className="w-6 border-t-2 border-rule" />
+            <p className="font-body text-sm text-ink-mid leading-relaxed">
+              A personal blog covering AI, data science, software engineering,
+              house music, sports, and life in San Francisco. Honest observations,
+              periodic posts, no pretense.
+            </p>
+          </div>
+
+          {/* Center — Spinning cube */}
+          <div className="flex justify-center">
+            <SpinningCube />
+          </div>
+
+          {/* Right column — About */}
+          <div className="space-y-4 lg:border-l lg:border-rule-light lg:pl-10">
+            <p className="font-mono text-xs tracking-widest uppercase text-ink-faint">
+              The Author
+            </p>
+            <h2 className="font-display font-black text-2xl text-ink leading-tight">
+              Radu Manea
+            </h2>
+            <p className="font-mono text-xs tracking-widest uppercase text-ink-mid">
+              Data Scientist &amp; Software Engineer
+            </p>
+            <div className="w-6 border-t-2 border-rule" />
+            <p className="font-body text-sm text-ink-mid leading-relaxed">
+              Graduated UC San Diego, 2023. Currently based in San Francisco, CA.
+              Off the clock: golf, pickleball, producing house music, and hunting
+              for the city&apos;s next great restaurant.
+            </p>
+          </div>
+
+        </div>
       </section>
 
       <hr className="rule-mid" />
