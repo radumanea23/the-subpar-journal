@@ -1,0 +1,96 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* ── Design tokens ─────────────────────────────────────────────────────────── */
+:root {
+  /* Public surface */
+  --color-parchment: #f0e6ce;
+  --color-parchment-dark: #e5d8b8;
+  --color-parchment-deep: #d4c5a0;
+  --color-ink: #0f0f0f;
+  --color-ink-mid: #3a3a3a;
+  --color-ink-faint: #7a7570;
+  --color-rule: #2a2a2a;
+  --color-rule-light: #c8baa0;
+
+  /* Category accents */
+  --color-accent-ai: #1a2e4a;
+  --color-accent-music: #4a1a4a;
+  --color-accent-sports: #8b1a1a;
+  --color-accent-stocks: #9a7d2e;
+  --color-accent-life: #1a3a1a;
+
+  /* Dashboard surface */
+  --color-dash-bg: #111111;
+  --color-dash-surface: #1c1c1c;
+  --color-dash-border: #2e2e2e;
+  --color-dash-text: #e8e0d0;
+  --color-dash-text-mid: #9a9088;
+  --color-dash-accent: #c8a84b;
+
+  /* Check-in calendar */
+  --checkin-full: #2d5a1b;
+  --checkin-partial: #8b7a1a;
+  --checkin-minimal: #7a2a1a;
+  --checkin-empty-dark: #2a2a2a;
+  --checkin-empty-light: #c8baa0;
+
+  /* Type scale */
+  --text-masthead: clamp(2.5rem, 6vw, 5rem);
+  --text-headline: clamp(1.75rem, 3vw, 2.5rem);
+}
+
+/* ── Base styles ────────────────────────────────────────────────────────────── */
+html {
+  font-size: 16px;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+body {
+  font-family: var(--font-baskerville), Georgia, serif;
+  background-color: var(--color-parchment);
+  color: var(--color-ink);
+  line-height: 1.65;
+}
+
+/* ── Focus ring ─────────────────────────────────────────────────────────────── */
+:focus-visible {
+  outline: 1px solid var(--color-ink);
+  outline-offset: 2px;
+}
+
+/* ── Ruled lines ────────────────────────────────────────────────────────────── */
+hr {
+  border: none;
+  border-top: 1px solid var(--color-rule-light);
+  margin: 2.5rem 0;
+}
+
+hr.rule-heavy {
+  border-top: 3px solid var(--color-rule);
+}
+
+hr.rule-mid {
+  border-top: 1px solid var(--color-rule);
+}
+
+/* ── Typography utilities ───────────────────────────────────────────────────── */
+@layer utilities {
+  .text-balance {
+    text-wrap: balance;
+  }
+
+  .font-display {
+    font-family: var(--font-playfair), Georgia, serif;
+  }
+
+  .font-body {
+    font-family: var(--font-baskerville), Georgia, serif;
+  }
+
+  .font-ui {
+    font-family: var(--font-ibm-mono), monospace;
+  }
+}
