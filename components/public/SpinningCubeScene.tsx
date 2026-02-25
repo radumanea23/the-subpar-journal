@@ -10,7 +10,7 @@ const INK = "#0F0F0F"
 const PARCHMENT = "#F0E6CE"
 
 // BoxGeometry face order: +X, -X, +Y, -Y, +Z, -Z
-const FACES = ["AI", "MUSIC", "SPORTS", "STOCKS", "LIFE", "TSJ"]
+const FACES = ["AI", "MUSIC", "SPORTS", "CODING", "LIFE", "TSJ"]
 
 const IDLE_VX = 0.002
 const IDLE_VY = 0.004
@@ -20,8 +20,12 @@ const MAX_PARTICLES = 300
 // ── Shared hover state (plain ref — avoids React re-renders per frame) ─────────
 interface HoverState {
   active: boolean
-  dx: number // latest mouse movementX
-  dy: number // latest mouse movementY
+  hasHit: boolean   // true once onPointerMove has fired at least once this hover
+  dx: number        // latest mouse movementX
+  dy: number        // latest mouse movementY
+  hitX: number      // world-space intersection point on mesh surface
+  hitY: number
+  hitZ: number
 }
 
 // ── Face texture ───────────────────────────────────────────────────────────────
@@ -119,10 +123,15 @@ function Cube({ hover }: { hover: React.MutableRefObject<HoverState> }) {
       }}
       onPointerLeave={() => {
         hover.current.active = false
+        hover.current.hasHit = false
       }}
       onPointerMove={(e: ThreeEvent<PointerEvent>) => {
         hover.current.dx = e.nativeEvent.movementX
         hover.current.dy = e.nativeEvent.movementY
+        hover.current.hitX = e.point.x
+        hover.current.hitY = e.point.y
+        hover.current.hitZ = e.point.z
+        hover.current.hasHit = true
       }}
     >
       <boxGeometry args={[1.6, 1.6, 1.6]} />
@@ -195,27 +204,29 @@ function Fragments({ hover }: { hover: React.MutableRefObject<HoverState> }) {
     const h = hover.current
     const ps = particles.current
 
-    // Spawn new fragments while hovering
-    if (h.active) {
+    // Spawn new fragments at the cursor's hit point on the cube surface
+    if (h.active && h.hasHit) {
       spawnAccum.current += 5
       while (spawnAccum.current >= 1) {
         spawnAccum.current -= 1
         const p = ps.find((p) => !p.active)
         if (!p) break
 
-        // Random point on a sphere just outside the cube surface
-        const theta = Math.random() * Math.PI * 2
-        const phi = Math.acos(2 * Math.random() - 1)
-        const r = CUBE_HALF + Math.random() * 0.25
-        p.x = r * Math.sin(phi) * Math.cos(theta)
-        p.y = r * Math.sin(phi) * Math.sin(theta)
-        p.z = r * Math.cos(phi)
+        // Tight spread around the exact cursor position on the face
+        const spread = 0.12
+        p.x = h.hitX + (Math.random() - 0.5) * spread
+        p.y = h.hitY + (Math.random() - 0.5) * spread
+        p.z = h.hitZ + (Math.random() - 0.5) * spread
 
-        // Velocity: outward from center + random scatter
+        // Velocity: outward along the face normal (hit point / CUBE_HALF ≈ normal)
+        // + small random scatter for a crumbling pixel look
         const speed = 0.018 + Math.random() * 0.024
-        p.vx = (p.x / r) * speed + (Math.random() - 0.5) * 0.01
-        p.vy = (p.y / r) * speed + (Math.random() - 0.5) * 0.01
-        p.vz = (p.z / r) * speed + (Math.random() - 0.5) * 0.01
+        const nx = h.hitX / CUBE_HALF
+        const ny = h.hitY / CUBE_HALF
+        const nz = h.hitZ / CUBE_HALF
+        p.vx = nx * speed + (Math.random() - 0.5) * 0.012
+        p.vy = ny * speed + (Math.random() - 0.5) * 0.012
+        p.vz = nz * speed + (Math.random() - 0.5) * 0.012
 
         p.life = 0
         p.maxLife = 30 + Math.floor(Math.random() * 50)
@@ -264,7 +275,7 @@ function Fragments({ hover }: { hover: React.MutableRefObject<HoverState> }) {
 
 // ── Scene root ─────────────────────────────────────────────────────────────────
 function Scene() {
-  const hover = useRef<HoverState>({ active: false, dx: 0, dy: 0 })
+  const hover = useRef<HoverState>({ active: false, hasHit: false, dx: 0, dy: 0, hitX: 0, hitY: 0, hitZ: 0 })
   return (
     <>
       <ambientLight intensity={0.6} />
