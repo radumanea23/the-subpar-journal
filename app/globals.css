@@ -94,3 +94,78 @@ hr.rule-mid {
     font-family: var(--font-ibm-mono), monospace;
   }
 }
+
+/* ── Prose editorial (post body) ────────────────────────────────────────────── */
+.prose-editorial {
+  font-family: var(--font-baskerville), Georgia, serif;
+  font-size: 1.0625rem;
+  line-height: 1.75;
+  color: var(--color-ink-mid);
+}
+
+.prose-editorial p { margin: 0 0 1.5em; }
+
+.prose-editorial h2 {
+  font-family: var(--font-playfair), Georgia, serif;
+  font-size: 1.5rem;
+  font-weight: 700;
+  color: var(--color-ink);
+  margin: 2.5em 0 0.75em;
+}
+
+.prose-editorial h3 {
+  font-family: var(--font-baskerville), Georgia, serif;
+  font-size: 1.125rem;
+  font-weight: 700;
+  color: var(--color-ink);
+  margin: 2em 0 0.5em;
+}
+
+.prose-editorial blockquote {
+  border-left: 3px solid var(--color-rule);
+  margin: 1.5em 0;
+  padding: 0.25em 0 0.25em 1.25em;
+  font-style: italic;
+  color: var(--color-ink-mid);
+}
+
+.prose-editorial code {
+  font-family: var(--font-ibm-mono), monospace;
+  font-size: 0.875em;
+  background: var(--color-parchment-dark);
+  padding: 0.125em 0.375em;
+}
+
+.prose-editorial pre {
+  background: var(--color-parchment-dark);
+  border: 1px solid var(--color-rule-light);
+  padding: 1.25em;
+  overflow-x: auto;
+  margin: 1.5em 0;
+}
+
+.prose-editorial pre code {
+  background: none;
+  padding: 0;
+}
+
+.prose-editorial img {
+  width: 100%;
+  border: 1px solid var(--color-rule-light);
+  display: block;
+  margin: 1.5em 0;
+}
+
+.prose-editorial a {
+  color: var(--color-ink);
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+
+.prose-editorial ul,
+.prose-editorial ol {
+  padding-left: 1.5em;
+  margin: 0 0 1.5em;
+}
+
+.prose-editorial li { margin-bottom: 0.375em; }
