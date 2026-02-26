@@ -8,9 +8,14 @@ export default function LoginPage() {
       <p className="font-mono text-xs tracking-widest text-ink-faint uppercase mb-2">
         Private access
       </p>
-      <h1 className="font-display text-3xl font-black text-ink mb-10">
-        The Subpar Journal
+      <h1 className="font-display text-4xl font-black text-ink mb-4">
+        Hey, Radu.
       </h1>
+      <p className="font-body text-sm text-ink-mid leading-relaxed max-w-xs text-center mb-10">
+        If you aren&apos;t — our sincere condolences. This section of the
+        Journal is a private life agenda: the kind people once kept behind
+        locked doors, and now is kept behind OAuth. (:
+      </p>
 
       <form
         action={async () => {
@@ -20,7 +25,7 @@ export default function LoginPage() {
       >
         <button
           type="submit"
-          className="font-mono text-xs tracking-widest text-ink uppercase border border-rule px-8 py-3 hover:bg-parchment-dark transition-colors duration-150"
+          className="font-mono text-xs tracking-widest text-ink uppercase border border-rule px-8 py-3 hover:bg-parchment-dark"
         >
           Sign in with GitHub
         </button>

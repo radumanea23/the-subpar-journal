@@ -27,11 +27,12 @@ export async function PUT(req: Request, { params }: Params) {
   try {
     const body = await req.json()
     const now = new Date()
+    // _setPublishedAt is a client-side flag meaning "first publish — set timestamp now"
+    const { _setPublishedAt, ...update } = body
     await getDb().collection("posts").doc(params.id).update({
-      ...body,
+      ...update,
       updatedAt: now,
-      // Set publishedAt only when first publishing
-      ...(body.published && body.publishedAt == null ? { publishedAt: now } : {}),
+      ...(_setPublishedAt ? { publishedAt: now } : {}),
     })
     return NextResponse.json({ id: params.id })
   } catch {

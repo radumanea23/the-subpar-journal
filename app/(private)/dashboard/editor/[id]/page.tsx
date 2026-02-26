@@ -1,21 +1,30 @@
+import { notFound } from "next/navigation"
+import { getDb } from "@/lib/firebase-admin"
+import PostEditorNoSSR from "@/components/dashboard/PostEditorNoSSR"
+import type { Post } from "@/types"
+
 interface Props {
   params: { id: string }
 }
 
-export default function EditPostPage({ params }: Props) {
-  return (
-    <div>
-      <p className="font-mono text-xs tracking-widest text-dash-text-mid uppercase mb-2">
-        Blog Editor
-      </p>
-      <h1 className="font-display text-3xl font-bold text-dash-text mb-8">
-        Edit Post
-      </h1>
-      <hr className="border-dash-border mb-8" />
-      {/* Phase 4: load post {params.id} and render <Editor /> */}
-      <p className="font-mono text-sm text-dash-text-mid">
-        Editing post: {params.id}
-      </p>
-    </div>
-  )
+export default async function EditPostPage({ params }: Props) {
+  const doc = await getDb().collection("posts").doc(params.id).get()
+  if (!doc.exists) notFound()
+
+  const data = doc.data()!
+  const post: Post = {
+    id: doc.id,
+    slug: data.slug ?? "",
+    title: data.title ?? "",
+    excerpt: data.excerpt ?? "",
+    content: data.content ?? "",
+    category: data.category ?? "ai",
+    coverImage: data.coverImage ?? undefined,
+    published: data.published ?? false,
+    publishedAt: data.publishedAt?.toDate?.() ?? undefined,
+    createdAt: data.createdAt?.toDate?.() ?? new Date(),
+    updatedAt: data.updatedAt?.toDate?.() ?? new Date(),
+  }
+
+  return <PostEditorNoSSR initialPost={post} />
 }

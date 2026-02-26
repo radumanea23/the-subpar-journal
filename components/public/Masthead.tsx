@@ -9,12 +9,9 @@ export default function Masthead() {
               style={{ fontSize: "var(--text-masthead)" }}>
               The Subpar Journal
             </h1>
-            <p className="font-mono text-xs tracking-widest text-ink-mid mt-1 uppercase">
-              Est. 2026
-            </p>
           </div>
 
-          {/* External links */}
+          {/* External links + sign in */}
           <nav className="flex items-center gap-6">
             <a
               href="https://github.com/radumanea23"
@@ -31,6 +28,12 @@ export default function Masthead() {
               className="font-mono text-xs tracking-widest text-ink-mid uppercase hover:underline underline-offset-4"
             >
               LinkedIn
+            </a>
+            <a
+              href="/login"
+              className="font-mono text-xs tracking-widest text-ink-faint uppercase hover:underline underline-offset-4"
+            >
+              Sign In
             </a>
           </nav>
         </div>

@@ -14,18 +14,16 @@ const FACES = ["AI", "MUSIC", "SPORTS", "DATA", "LIFE", "TSJ"]
 
 const IDLE_VX = 0.002
 const IDLE_VY = 0.004
-const CUBE_HALF = 0.8 // half-edge of the 1.6-unit box
-const MAX_PARTICLES = 120
+
+const EDGE_OPACITY_REST   = 0.12
+const EDGE_OPACITY_HOVER  = 0.75
+const LERP = 0.08
 
 // ── Shared hover state (plain ref — avoids React re-renders per frame) ─────────
 interface HoverState {
   active: boolean
-  hasHit: boolean   // true once onPointerMove has fired at least once this hover
-  dx: number        // latest mouse movementX
-  dy: number        // latest mouse movementY
-  hitX: number      // world-space intersection point on mesh surface
-  hitY: number
-  hitZ: number
+  dx: number
+  dy: number
 }
 
 // ── Face texture ───────────────────────────────────────────────────────────────
@@ -76,7 +74,7 @@ function makeFaceTexture(label: string): THREE.CanvasTexture {
   return new THREE.CanvasTexture(canvas)
 }
 
-// ── Cube ───────────────────────────────────────────────────────────────────────
+// ── Cube with edge reveal ───────────────────────────────────────────────────────
 function Cube({ hover }: { hover: React.MutableRefObject<HoverState> }) {
   const meshRef = useRef<THREE.Mesh>(null!)
   const vx = useRef(IDLE_VX)
@@ -95,198 +93,70 @@ function Cube({ hover }: { hover: React.MutableRefObject<HoverState> }) {
     [],
   )
 
-  useFrame(() => {
-    const h = hover.current
-
-    // When hovered: blend toward mouse-driven speed + a gentle base rotation.
-    // When idle: blend back to constant defaults.
-    const targetVx = h.active ? h.dy * 0.0018 + IDLE_VX * 0.4 : IDLE_VX
-    const targetVy = h.active ? h.dx * 0.0018 + IDLE_VY * 0.4 : IDLE_VY
-
-    vx.current += (targetVx - vx.current) * 0.08
-    vy.current += (targetVy - vy.current) * 0.08
-
-    meshRef.current.rotation.x += vx.current
-    meshRef.current.rotation.y += vy.current
-
-    // Decay mouse delta so cube coasts to a stop if cursor is stationary
-    h.dx *= 0.82
-    h.dy *= 0.82
-  })
-
-  return (
-    <mesh
-      ref={meshRef}
-      material={materials}
-      onPointerEnter={() => {
-        hover.current.active = true
-      }}
-      onPointerLeave={() => {
-        hover.current.active = false
-        hover.current.hasHit = false
-      }}
-      onPointerMove={(e: ThreeEvent<PointerEvent>) => {
-        hover.current.dx = e.nativeEvent.movementX
-        hover.current.dy = e.nativeEvent.movementY
-        hover.current.hitX = e.point.x
-        hover.current.hitY = e.point.y
-        hover.current.hitZ = e.point.z
-        hover.current.hasHit = true
-      }}
-    >
-      <boxGeometry args={[1.6, 1.6, 1.6]} />
-    </mesh>
-  )
-}
-
-// ── Pixel fragment particle system ─────────────────────────────────────────────
-interface Particle {
-  x: number; y: number; z: number
-  vx: number; vy: number; vz: number
-  life: number; maxLife: number
-  active: boolean
-}
-
-// Fragment shader renders every gl.POINT as a solid square (no circle discard),
-// with per-particle alpha fed through a custom attribute.
-// INK #0F0F0F → vec3(0.059, 0.059, 0.059) — dark on parchment background = visible
-const VERT = `
-  attribute float alpha;
-  varying float vAlpha;
-  void main() {
-    vAlpha = alpha;
-    gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0);
-    gl_PointSize = 4.0;
-  }
-`
-const FRAG = `
-  varying float vAlpha;
-  void main() {
-    if (vAlpha < 0.02) discard;
-    gl_FragColor = vec4(0.059, 0.059, 0.059, vAlpha);
-  }
-`
-
-function Fragments({ hover }: { hover: React.MutableRefObject<HoverState> }) {
-  const spawnAccum = useRef(0)
-
-  const particles = useRef<Particle[]>(
-    Array.from({ length: MAX_PARTICLES }, () => ({
-      x: 0, y: 0, z: 0,
-      vx: 0, vy: 0, vz: 0,
-      life: 0, maxLife: 60,
-      active: false,
-    })),
-  )
-
-  // Build the Points object imperatively so <primitive> can own it cleanly.
-  const { points, positions, alphas } = useMemo(() => {
-    const positions = new Float32Array(MAX_PARTICLES * 3)
-    const alphas = new Float32Array(MAX_PARTICLES)
-    // Park inactive particles off-screen so they never flash on first frame
-    for (let i = 0; i < MAX_PARTICLES; i++) positions[i * 3 + 2] = -1000
-
-    const geo = new THREE.BufferGeometry()
-    geo.setAttribute("position", new THREE.BufferAttribute(positions, 3))
-    geo.setAttribute("alpha", new THREE.BufferAttribute(alphas, 1))
-
-    const mat = new THREE.ShaderMaterial({
-      vertexShader: VERT,
-      fragmentShader: FRAG,
+  // Build edge lines imperatively so we can mutate opacity each frame
+  const { edges, edgeMat } = useMemo(() => {
+    const edgeGeo = new THREE.EdgesGeometry(new THREE.BoxGeometry(1.64, 1.64, 1.64))
+    const mat = new THREE.LineBasicMaterial({
+      color: new THREE.Color(PARCHMENT),
       transparent: true,
-      depthWrite: false,
+      opacity: EDGE_OPACITY_REST,
     })
-
-    const pts = new THREE.Points(geo, mat)
-    // Without a computed bounding sphere Three.js may frustum-cull the entire
-    // Points object before any particles are visible. Disable culling so the
-    // particle cloud always renders regardless of its bounding state.
-    pts.frustumCulled = false
-    return { points: pts, positions, alphas }
+    const lines = new THREE.LineSegments(edgeGeo, mat)
+    return { edges: lines, edgeMat: mat }
   }, [])
 
   useFrame(() => {
     const h = hover.current
-    const ps = particles.current
 
-    // Spawn new fragments at the cursor's hit point on the cube surface
-    if (h.active && h.hasHit) {
-      spawnAccum.current += 3
-      while (spawnAccum.current >= 1) {
-        spawnAccum.current -= 1
-        const p = ps.find((p) => !p.active)
-        if (!p) break
+    // Rotation velocity: blend toward mouse-driven speed when hovered
+    const targetVx = h.active ? h.dy * 0.0018 + IDLE_VX * 0.4 : IDLE_VX
+    const targetVy = h.active ? h.dx * 0.0018 + IDLE_VY * 0.4 : IDLE_VY
 
-        // Tight spread around the exact cursor position on the face
-        const spread = 0.12
-        p.x = h.hitX + (Math.random() - 0.5) * spread
-        p.y = h.hitY + (Math.random() - 0.5) * spread
-        p.z = h.hitZ + (Math.random() - 0.5) * spread
+    vx.current += (targetVx - vx.current) * LERP
+    vy.current += (targetVy - vy.current) * LERP
 
-        // Velocity: outward along the face normal (hit point / CUBE_HALF ≈ normal)
-        // + small random scatter for a crumbling pixel look
-        const speed = 0.018 + Math.random() * 0.024
-        const nx = h.hitX / CUBE_HALF
-        const ny = h.hitY / CUBE_HALF
-        const nz = h.hitZ / CUBE_HALF
-        p.vx = nx * speed + (Math.random() - 0.5) * 0.012
-        p.vy = ny * speed + (Math.random() - 0.5) * 0.012
-        p.vz = nz * speed + (Math.random() - 0.5) * 0.012
+    meshRef.current.rotation.x += vx.current
+    meshRef.current.rotation.y += vy.current
 
-        p.life = 0
-        p.maxLife = 30 + Math.floor(Math.random() * 50)
-        p.active = true
-      }
-    }
+    // Sync edge overlay rotation with the mesh
+    edges.rotation.copy(meshRef.current.rotation)
 
-    // Integrate and write to buffers
-    for (let i = 0; i < MAX_PARTICLES; i++) {
-      const p = ps[i]
+    // Decay mouse delta so cube coasts to a stop if cursor is stationary
+    h.dx *= 0.82
+    h.dy *= 0.82
 
-      if (!p.active) {
-        positions[i * 3] = 0
-        positions[i * 3 + 1] = 0
-        positions[i * 3 + 2] = -1000
-        alphas[i] = 0
-        continue
-      }
-
-      p.life++
-      p.x += p.vx
-      p.y += p.vy
-      p.z += p.vz
-      p.vx *= 0.96
-      p.vy *= 0.96
-      p.vz *= 0.96
-      p.vy -= 0.0008 // slight downward drift
-
-      const t = p.life / p.maxLife
-      alphas[i] = 1 - t
-
-      positions[i * 3] = p.x
-      positions[i * 3 + 1] = p.y
-      positions[i * 3 + 2] = p.z
-
-      if (p.life >= p.maxLife) p.active = false
-    }
-
-    const geo = points.geometry as THREE.BufferGeometry
-    ;(geo.getAttribute("position") as THREE.BufferAttribute).needsUpdate = true
-    ;(geo.getAttribute("alpha") as THREE.BufferAttribute).needsUpdate = true
+    // Lerp edge opacity: faint at rest → bright on hover
+    const targetOpacity = h.active ? EDGE_OPACITY_HOVER : EDGE_OPACITY_REST
+    edgeMat.opacity += (targetOpacity - edgeMat.opacity) * LERP
   })
 
-  return <primitive object={points} />
+  return (
+    <>
+      <mesh
+        ref={meshRef}
+        material={materials}
+        onPointerEnter={() => { hover.current.active = true }}
+        onPointerLeave={() => { hover.current.active = false }}
+        onPointerMove={(e: ThreeEvent<PointerEvent>) => {
+          hover.current.dx = e.nativeEvent.movementX
+          hover.current.dy = e.nativeEvent.movementY
+        }}
+      >
+        <boxGeometry args={[1.6, 1.6, 1.6]} />
+      </mesh>
+      <primitive object={edges} />
+    </>
+  )
 }
 
 // ── Scene root ─────────────────────────────────────────────────────────────────
 function Scene() {
-  const hover = useRef<HoverState>({ active: false, hasHit: false, dx: 0, dy: 0, hitX: 0, hitY: 0, hitZ: 0 })
+  const hover = useRef<HoverState>({ active: false, dx: 0, dy: 0 })
   return (
     <>
       <ambientLight intensity={0.6} />
       <directionalLight position={[-2, 3, 2]} intensity={0.8} />
       <Cube hover={hover} />
-      <Fragments hover={hover} />
     </>
   )
 }

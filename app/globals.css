@@ -169,3 +169,16 @@ hr.rule-mid {
 }
 
 .prose-editorial li { margin-bottom: 0.375em; }
+
+/* ── TipTap ProseMirror editor ──────────────────────────────────────────────── */
+.ProseMirror {
+  outline: none;
+  min-height: inherit;
+}
+
+/* Ensure list markers are visible inside the editor */
+.ProseMirror ul { list-style-type: disc; }
+.ProseMirror ol { list-style-type: decimal; }
+
+/* Image nodes */
+.ProseMirror img { cursor: default; }

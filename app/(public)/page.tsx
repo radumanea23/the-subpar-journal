@@ -62,7 +62,7 @@ export default async function HomePage() {
             <div className="w-6 border-t-2 border-rule" />
             <p className="font-body text-sm text-ink-mid leading-relaxed">
               A personal blog covering AI, data science, software engineering,
-              house music, sports, and life in San Francisco. Honest observations,
+              music, sports, and life in San Francisco. Honest observations,
               periodic posts, no pretense.
             </p>
           </div>

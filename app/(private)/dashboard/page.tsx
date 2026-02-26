@@ -12,9 +12,9 @@ export default function DashboardPage() {
       {/* Phase 3: Replace with real quick-stat cards */}
       <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
         {[
-          { label: "Published Posts", value: "—" },
-          { label: "Current Streak", value: "—" },
-          { label: "Open Projects", value: "—" },
+          { label: "Published Posts", value: "0" },
+          { label: "Current Streak", value: "0" },
+          { label: "Open Projects", value: "0" },
         ].map((stat) => (
           <div
             key={stat.label}
