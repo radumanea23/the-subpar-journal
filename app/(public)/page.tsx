@@ -1,5 +1,5 @@
 import SpinningCube from "@/components/public/SpinningCube"
-import BlogFeed from "@/components/public/BlogFeed"
+import BlogFeedFiltered from "@/components/public/BlogFeedFiltered"
 import { getDb } from "@/lib/firebase-admin"
 import { Timestamp } from "firebase-admin/firestore"
 import type { Post, Category } from "@/types"
@@ -97,7 +97,7 @@ export default async function HomePage() {
       <hr className="rule-mid" />
 
       <section className="py-16">
-        <BlogFeed posts={posts} />
+        <BlogFeedFiltered posts={posts} />
       </section>
     </main>
   )
