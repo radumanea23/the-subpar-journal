@@ -1,0 +1,17 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32">
+  <!-- Ink background -->
+  <rect width="32" height="32" fill="#0f0f0f"/>
+  <!-- Gold rule — echoes the masthead's heavy top border -->
+  <rect width="32" height="3" fill="#c8a84b"/>
+  <!-- TSJ initials in parchment serif -->
+  <text
+    x="16"
+    y="22"
+    font-family="Georgia, 'Times New Roman', serif"
+    font-size="13"
+    font-weight="700"
+    fill="#f0e6ce"
+    text-anchor="middle"
+    letter-spacing="0.5"
+  >TSJ</text>
+</svg>
