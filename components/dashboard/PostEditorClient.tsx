@@ -72,17 +72,19 @@ export default function PostEditorClient({ initialPost }: Props) {
       }
 
       if (isEdit) {
-        await fetch(`/api/posts/${initialPost!.id}`, {
+        const res = await fetch(`/api/posts/${initialPost!.id}`, {
           method: "PUT",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify(body),
         })
+        if (!res.ok) throw new Error(await res.text())
       } else {
         const res = await fetch("/api/posts", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify(body),
         })
+        if (!res.ok) throw new Error(await res.text())
         const data = await res.json()
         // Navigate to edit page so subsequent saves use PUT
         router.replace(`/dashboard/editor/${data.id}`)

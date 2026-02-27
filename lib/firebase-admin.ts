@@ -24,6 +24,11 @@ export function getDb(): Firestore {
           })
   }
 
-  _db = getFirestore(_app)
+  // Pass FIRESTORE_DATABASE_ID if set (non-default Firestore database names
+  // require it; omitting it always connects to "(default)" and causes
+  // gRPC error 5 NOT_FOUND if that database doesn't exist).
+  _db = process.env.FIRESTORE_DATABASE_ID
+    ? getFirestore(_app, process.env.FIRESTORE_DATABASE_ID)
+    : getFirestore(_app)
   return _db
 }
