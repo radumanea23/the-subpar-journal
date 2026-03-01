@@ -23,7 +23,12 @@ export function readingTime(content: string): number {
   return Math.ceil(words / 200)
 }
 
-/** Returns today's date formatted as "YYYY-MM-DD" for use as a check-in ID. */
+/** Returns today's local date formatted as "YYYY-MM-DD" for use as a check-in ID. */
 export function todayId(): string {
-  return new Date().toISOString().split("T")[0]
+  const d = new Date()
+  return [
+    d.getFullYear(),
+    String(d.getMonth() + 1).padStart(2, "0"),
+    String(d.getDate()).padStart(2, "0"),
+  ].join("-")
 }
